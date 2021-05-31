@@ -111,22 +111,28 @@ runCV = function(i,Tstart,predict_times,data,id){
       LM_models <- LM_models_fun()
       
       auc_fun <- function (time) {
-        auc_objs <- mapply(function(jm,newdata=testingData,Tstart=Tstart,Thoriz =time){
-          res = try(aucJM(jm,newdata=testingData,Tstart=Tstart,Thoriz =time,
+        auc_objs <- mapply(function(jm,newdata0,Tstart0,Thoriz0){
+          if ("P2" %in% names(jm$assign)){
+              newdata0 = subset(newdata0,!is.na(P2))
+          }
+          res = try(aucJM(jm,newdata=newdata0,Tstart=Tstart0,Thoriz =Thoriz0,
                           idVar ="PatientID" ,respVar = "Test_status", 
                           timeVar = "TestDate",evTimeVar = "DFS"),TRUE)
           if (class(res)=="try-error"){res=list('auc'=NA)}
           return(res)
         }, 
         LM_models, 
-        MoreArgs = list(newdata=testingData,Tstart=Tstart,Thoriz =time), SIMPLIFY = FALSE)
+        MoreArgs = list(newdata0=testingData,Tstart0=Tstart,Thoriz0 =time), SIMPLIFY = FALSE)
         sapply(auc_objs, "[[", "auc")
       }
       LM_AUCs <- sapply(predict_times, auc_fun)
       # PE
       pe_fun <- function (time) {
-        pe_objs <- mapply(function(jm,newdata=testingData,Tstart=Tstart,Thoriz =time){
-          res = try(prederrJM(jm,newdata=testingData,Tstart=Tstart,Thoriz =time,
+        pe_objs <- mapply(function(jm,newdata0,Tstart0,Thoriz0){
+          if ("P2" %in% names(jm$assign)){
+            newdata0 = subset(newdata0,!is.na(P2))
+          }
+          res = try(prederrJM(jm,newdata=newdata0,Tstart=Tstart0,Thoriz =Thoriz0,
                               idVar ="PatientID" ,respVar = "Test_status", 
                               timeVar = "TestDate",evTimeVar = "DFS", 
                               lossFun = "square"),TRUE)
@@ -134,7 +140,7 @@ runCV = function(i,Tstart,predict_times,data,id){
           return(res)
         },
         LM_models, 
-        MoreArgs = list(newdata=testingData,Tstart=Tstart,Thoriz =time), SIMPLIFY = FALSE)
+        MoreArgs = list(newdata0=testingData,Tstart0=Tstart,Thoriz0 =time), SIMPLIFY = FALSE)
         sapply(pe_objs, "[[", "prederr")
       }
       LM_PEs <- sapply(predict_times, pe_fun)
@@ -142,22 +148,28 @@ runCV = function(i,Tstart,predict_times,data,id){
       ## training
       # AUC
       auc_fun_tr <- function (time) {
-        auc_objs <- mapply(function(jm,newdata=trainingData,Tstart=Tstart,Thoriz =time){
-          res = try(aucJM(jm,newdata=trainingData,Tstart=Tstart,Thoriz =time,
+        auc_objs <- mapply(function(jm,newdata0,Tstart0,Thoriz0){
+          if ("P2" %in% names(jm$assign)){
+            newdata0 = subset(newdata0,!is.na(P2))
+          }
+          res = try(aucJM(jm,newdata=newdata0,Tstart=Tstart0,Thoriz =Thoriz0,
                           idVar ="PatientID" ,respVar = "Test_status", 
                           timeVar = "TestDate",evTimeVar = "DFS"),TRUE)
           if (class(res)=="try-error"){res=list('auc'=NA)}
           return(res)
         }, 
         LM_models, 
-        MoreArgs = list(newdata=trainingData,Tstart=Tstart,Thoriz =time), SIMPLIFY = FALSE)
+        MoreArgs = list(newdata0=trainingData,Tstart0=Tstart,Thoriz0 =time), SIMPLIFY = FALSE)
         sapply(auc_objs, "[[", "auc")
       }
       LM_AUCs_tr <- sapply(predict_times, auc_fun_tr)
       # PE
       pe_fun_tr <- function (time) {
-        pe_objs <- mapply(function(jm,newdata=trainingData,Tstart=Tstart,Thoriz =time){
-          res = try(prederrJM(jm,newdata=trainingData,Tstart=Tstart,Thoriz =time,
+        pe_objs <- mapply(function(jm,newdata0,Tstart0,Thoriz0){
+          if ("P2" %in% names(jm$assign)){
+            newdata0 = subset(newdata0,!is.na(P2))
+          }
+          res = try(prederrJM(jm,newdata=newdata0,Tstart=Tstart0,Thoriz =Thoriz0,
                               idVar ="PatientID" ,respVar = "Test_status", 
                               timeVar = "TestDate",evTimeVar = "DFS", 
                               lossFun = "square"),TRUE)
@@ -165,7 +177,7 @@ runCV = function(i,Tstart,predict_times,data,id){
           return(res)
         },
         LM_models, 
-        MoreArgs = list(newdata=trainingData,Tstart=Tstart,Thoriz =time), SIMPLIFY = FALSE)
+        MoreArgs = list(newdata0=trainingData,Tstart0=Tstart,Thoriz0 =time), SIMPLIFY = FALSE)
         sapply(pe_objs, "[[", "prederr")
       }
       LM_PEs_tr <- sapply(predict_times, pe_fun_tr)
@@ -223,6 +235,7 @@ runCV = function(i,Tstart,predict_times,data,id){
   }
   CV_results(trainingData,testingData,predict_times)
 }
+
 
 ##### test #########
 # i= splits$Fold1.Rep02

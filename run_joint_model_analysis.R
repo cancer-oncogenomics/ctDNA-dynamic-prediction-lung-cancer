@@ -56,9 +56,54 @@ out_all = bind_rows(res_all, .id = "column_label")
 out_AD = bind_rows(res_AD, .id = "column_label")
 
 ## plot the CV results
-plot_evaluation('results/CV_all_patients',out_all)
+                    
+# CV_all_patients/JMvsCox_testing.pdf ~ Fig 4b,  CV_all_patients/JMvsCox_training.pdf ~ Supplementary Fig 10,
+# CV_all_patients/betweenJMs.pdf ~ Supplementary Fig 15               
+plot_evaluation('results/CV_all_patients',out_all) 
+
+# CV_AD_patients/JMvsCox_testing.pdf,JMvsCox_training.pdf ~ Supplementary Fig 12
 plot_evaluation('results/CV_AD_patients',out_AD)
 
+## plot the personalized prediction ~ Fig 4c,d; Supplementary Fig 13
+lm <- lme( logAF ~ ns(TestDate,2),data=mydata,random = ~  ns(TestDate,2) | PatientID,
+           control = lmeControl(opt = "optim",msMaxIter =1000))
+fit <- coxph(Surv(DFS,DFS_status)~TP53+T_stage ,data=mydata.id,x = TRUE)
+iForm <- list(fixed = ~ 0 + TestDate + ins(TestDate, 2), random = ~ 0 + TestDate + ins(TestDate, 2),
+              indFixed = 1:3, indRandom = 1:3)
+final_jm = jointModelBayes(lm, fit, timeVar = "TestDate",
+                param = "td-extra", extraForm = iForm)
+
+if (!file.exists('personalized')) dir.create('personalized')
+
+for (PID in unique(mydata.id$PatientID)){
+  
+  ND = mydata[mydata$PatientID==PID,]
+  l = nrow(ND)
+  Relapse_status = ifelse(ND$DFS_status[1]==1,'Relapsed','Relaspe-free')
+  if (l<2) next
+  
+  png(paste0("personalized/",PID,".png"),width=(3*(l-1)+1)*100,height = 4*100,pointsize = 12,bg='transparent')
+  
+  survPreds <- vector("list", nrow(ND))
+  for (i in 1:nrow(ND)) {
+    Tstart = ND[i,"TestDate"]
+    survPreds[[i]] <- survfitJM(final_jm,idVar = "PatientID", newdata = ND[1:i, ],
+                                survTimes= seq(Tstart,min(max(Tstart+180/30,540/30),570/30),10/30),
+    )
+  }
+  par(mfrow = c(1, l-1),oma = c(0, 2, 2, 2)) 
+  for ( i in c(2:l)){
+    plot(survPreds[[i]], estimator = "median",include.y = T,
+         main=paste0("Follow-up time(months): ",round(survPreds[[i]]$last.time, 1)),
+         xlab = "Time (months)",conf.int = TRUE, ylab = "", ylab2 = "" ,cex.lab =1.5,cex.main=1.5
+    )
+  }
+  mtext("log mean VAF", side = 2, line = -1, outer = TRUE,cex=1.5)
+  mtext("Recurrence-free Probability", side = 4, line = -1, outer = TRUE,cex=1.5)
+  mtext(paste0(PID,", ",Relapse_status), outer = TRUE, cex = 1.5,side = 3,adj = 0)
+  dev.off()
+}                    
+                    
 ##### leave-one-out cross-validation #####
 ## joint model
 cores = parallel::detectCores()
@@ -77,7 +122,7 @@ dt_risk_LOO_jm = do.call("rbind",res_LOO_jm)
 dt_risk_LOO_cox = do.call("rbind",res_LOO_cox)
 dt_risk_LOO = merge(dt_risk_LOO_jm,dt_risk_LOO_cox,by=colnames(mydata.id),all = TRUE)
 
-## plot the reliable diagram
+## plot the reliable diagram ~ Supplementary Fig 11
 # at 12 month
 reliability_diagram(
   list(subset(dt_risk_LOO,!is.na(prob1)) %>% select(DFS_status,DFS,prob1) ,

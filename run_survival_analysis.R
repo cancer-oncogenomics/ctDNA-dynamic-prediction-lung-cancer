@@ -59,4 +59,12 @@ res.postsurg <- lapply( univ_formulas, function(x){summary(coxph(x, data = surv_
 ## multivariate cox regression
 summary(coxph(Surv(DFS,DFS_status)~PathologicalType+TP53+T_stage+Stage+Longitudinal_Detection,subset(surv_data.long,AdjuvantTherapy_status==1)))
 
-
+####### postsurgical ctDNA and ACT treatment ##########
+## KM plot
+# all patients ~ Fig 2c
+getATplot('Postsurgical ctDNA and ACT status',surv_data)
+# AD patients ~ Supplementary Fig 8a
+getATplot("Postsurgical ctDNA and ACT status, AD",subset(surv_data,PathologicalType=="AD"))
+# SqCC patients ~ Supplementary Fig 8b
+getATplot("Postsurgical ctDNA and ACT status, SqCC",subset(surv_data,PathologicalType=="SqCC"))
+                  

@@ -9,11 +9,11 @@ surv_data = read.csv("data/Survival_analysis_data.csv")
 ######## postsurgical ctDNA #########
 surv_data.postsurg = subset(surv_data,!is.na(Postsurgical_detection))
 ## KM plot 
-# all patients
+# all patients ~ Fig 2a
 getsurvplot("Postsurgical_detection","Postsurgical ctDNA",surv_data.postsurg)
-# AD patients
+# AD patients ~ Supplementary Fig 5a
 getsurvplot("Postsurgical_detection","Postsurgical ctDNA, AD",subset(surv_data.postsurg,PathologicalType=="AD"))
-# SqCC patients
+# SqCC patients ~ Supplementary Fig 5b
 getsurvplot("Postsurgical_detection","Postsurgical ctDNA, SqCC",subset(surv_data.postsurg,PathologicalType=="SqCC"))
 
 ## cox 
@@ -26,11 +26,11 @@ summary(coxph(Surv(DFS,DFS_status)~PathologicalType+TP53+T_stage+Postsurgical_de
 ####### post-ACT ctDNA ###########
 surv_data.ACT = subset(surv_data,AdjuvantTherapy_status==1& !is.na(PostACT_detection))
 ## KM plot
-# all patients
+# all patients ~ Fig 2b
 getsurvplot("PostACT_detection","Post-ACT ctDNA",surv_data.ACT)
-# AD patients
+# AD patients ~ Supplementary Fig 5c
 getsurvplot("PostACT_detection","Post-ACT ctDNA, AD",subset(surv_data.ACT,PathologicalType=="AD"))
-# SqCC patients
+# SqCC patients ~ Supplementary Fig 5d
 getsurvplot("PostACT_detection","Post-ACT ctDNA, SqCC",subset(surv_data.ACT,PathologicalType=="SqCC"))
 
 ## cox 
@@ -44,11 +44,11 @@ summary(coxph(Surv(DFS,DFS_status)~PathologicalType+Stage+T_stage+N_stage+PostAC
 ######### longitudinal ctDNA ##########
 surv_data.long =  subset(surv_data,! PatientID %in% c("P098","P103")) # exclude 2 patients with only pretreatment and postsurgical ctDNA
 ## KM plot
-# all patients
+# all patients ~ Fig 2d
 getsurvplot("Longitudinal_Detection","Post-ACT ctDNA",surv_data.long)
-# AD patients
+# AD patients ~ Supplementary Fig 5e
 getsurvplot("Longitudinal_Detection","Post-ACT ctDNA, AD",subset(surv_data.long,PathologicalType=="AD"))
-# SqCC patients
+# SqCC patients ~ Supplementary Fig 5f
 getsurvplot("Longitudinal_Detection","Post-ACT ctDNA, SqCC",subset(surv_data.long,PathologicalType=="SqCC"))
 
 ## cox 
